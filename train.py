@@ -63,7 +63,7 @@ def train(ROOT_PATH, MODEL_PATH):
 
     model = Mpu2TextClassifier(
         window_size=20,
-        mpu_channels=36,
+        mpu_channels=30,
         n_dim=128,
         n_head=4,
         dropout=0.5,
