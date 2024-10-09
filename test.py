@@ -104,7 +104,7 @@ class Identifier():
             more_than_one_word=word2num_dict["<more_than_one_word>"],
             if_print=False
         )
-        model.load_state_dict(torch.load(MODEL_PATH, weights_only = False))  # 加载模型参数
+        model.load_state_dict(torch.load(MODEL_PATH))  # 加载模型参数
         model.eval()  # 将模型设置为评估模式
 
 
@@ -121,7 +121,7 @@ class Identifier():
 
             def __getitem__(self,idx):
                 return {
-                    'data':normalize(torch.load(self.data[idx]['path'], weights_only = False)),
+                    'data':normalize(torch.load(self.data[idx]['path'])),
                     'label':torch.tensor(self.data[idx]['label'],dtype=torch.long),
                     'cls_label':torch.tensor(self.data[idx]['cls_label'],dtype=torch.long)
                 }

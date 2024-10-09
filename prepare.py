@@ -47,7 +47,7 @@ def split_by_random(data):
 
 def prepare(ROOT_PATH, TRAIN_FOLDER):
     RAW_PATH = os.path.join(ROOT_PATH, r"train-data", TRAIN_FOLDER)
-    READY_PATH = os.path.join(ROOT_PATH, r"train-data\\ready")
+    READY_PATH = os.path.join(ROOT_PATH, r"train-data\ready")
     os.makedirs(READY_PATH, exist_ok=True)
     random.seed(42)
     word_list = [
