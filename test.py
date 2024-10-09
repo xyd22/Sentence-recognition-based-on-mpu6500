@@ -6,12 +6,17 @@ from model import Mpu2TextClassifier
 from torch.nn.utils.rnn import pad_sequence
 import os
 from dataset import normalize
+
 def read_txt_to_tensor(txt_path):
     data_all = []
     with open(txt_path, "r") as f:
+        cnt = 0
         for line in f:
             line_data = line.strip()
             if len(line_data) <= 30:
+                cnt = cnt + 1
+                continue
+            if cnt == 3:
                 continue
             data_num = re.findall(r"(-?\d+)", line_data[0 : len(line_data)])
             data_num = [float(data_num[i]) for i in range(len(data_num))]
@@ -96,7 +101,7 @@ class Identifier():
         # 加载模型
         model = Mpu2TextClassifier(
             window_size=20,
-            mpu_channels=36,
+            mpu_channels=30,
             n_dim=128,
             n_head=4,
             dropout=0.5,

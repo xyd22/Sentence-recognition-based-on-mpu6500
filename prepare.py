@@ -8,9 +8,13 @@ import torch
 def read_txt_to_tensor(txt_path):
     data_all = []
     with open(txt_path, "r") as f:
+        cnt = 0
         for line in f:
             line_data = line.strip()
             if len(line_data) <= 30:
+                cnt = cnt + 1
+                continue
+            if cnt == 3:
                 continue
             data_num = re.findall(r"(-?\d+)", line_data[0 : len(line_data)])
             data_num = [float(data_num[i]) for i in range(len(data_num))]
