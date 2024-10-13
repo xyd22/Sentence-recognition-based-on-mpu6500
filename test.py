@@ -56,7 +56,7 @@ class Identifier():
         ROOT_PATH = os.path.dirname(os.path.abspath(__file__))       # 项目根目录
 
         if mode == 'test':
-            TEST_PATH = os.path.join(ROOT_PATH, r'TestData\cnTest')      # 测试项目路径
+            TEST_PATH = os.path.join(ROOT_PATH, r'TestData\fanshen-new')      # 测试项目路径
         if mode == 'predict':
             TEST_PATH = os.path.join(ROOT_PATH, r'TestData\real-time-identify')      # 测试项目路径
 

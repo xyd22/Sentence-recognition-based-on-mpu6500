@@ -10,13 +10,13 @@ def data_reader():
         timeout=1
     )
 
-    save_path = 'train-data\train-data-collect'
-    filename = 'TianQiBuCuo'
+    save_path = r'train-data\new-data'
+    filename = 'WoXiangChiFan'
     window_size = 150
-
+    # 80 100 150
     # 在此修改文件路径
     for file_num in range(1, 105):
-        file_path = os.path.join(ROOT_PATH, save_path, filename, rf"\{file_num}.txt")
+        file_path = os.path.join(ROOT_PATH, save_path, filename, rf"{file_num}.txt")
         # 检查文件是否存在
         if os.path.exists(file_path):
             continue
@@ -26,9 +26,9 @@ def data_reader():
 
     # 打开串口
     # ser.open()
-
     count = 0
     # 打开一个文件用于写入
+
     with open(file_path, 'w') as f:
         while True:
             if ser.in_waiting:

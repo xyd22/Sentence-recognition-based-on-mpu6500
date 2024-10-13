@@ -9,12 +9,20 @@ def read_txt_to_tensor(txt_path):
     data_all = []
     with open(txt_path, "r") as f:
         cnt = 0
+        count_line = 0
+        for line in f:
+            count_line += 1
+    with open(txt_path, "r") as f:
+        count_line_36 = 0
         for line in f:
             line_data = line.strip()
-            if len(line_data) <= 30:
+            count_line_36 += 1
+            if count_line == 42 and len(line_data) <= 30:
                 cnt = cnt + 1
                 continue
-            if cnt == 3:
+            if count_line == 42 and cnt == 3:
+                continue
+            if count_line == 36 and count_line_36 >= 13 and count_line_36 <= 18:
                 continue
             data_num = re.findall(r"(-?\d+)", line_data[0 : len(line_data)])
             data_num = [float(data_num[i]) for i in range(len(data_num))]
@@ -98,6 +106,7 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
                     }
                 )
                 counter += 1
+                # print(counter)
 
 
     # sentence_annot_json = []
@@ -126,15 +135,15 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
 
                 
 
-    # augmented_annot_json = augment(
-    #     # word_annot_json + sentence_annot_json,
-    #     word_annot_json,
-    #     target_data_num=3000,
-    #     max_seq_length=20,
-    #     min_seq_length=10,
-    #     more_than_one_word=word2num_dict["<more_than_one_word>"],
-    #     READY_PATH=READY_PATH,
-    # )
+    augmented_annot_json = augment(
+        # word_annot_json + sentence_annot_json,
+        word_annot_json,
+        target_data_num=3000,
+        max_seq_length=20,
+        min_seq_length=10,
+        more_than_one_word=word2num_dict["<more_than_one_word>"],
+        READY_PATH=READY_PATH,
+    )
 
     word_train,word_test=split_by_random(word_annot_json)
     with open(os.path.join(READY_PATH,'word','train.json'),'w') as f:
@@ -148,15 +157,15 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
     # with open(os.path.join(READY_PATH,'sentence','test.json'),'w') as f:
     #     json.dump(sent_test,f)
 
-    # augment_train,augment_test=split_by_random(augmented_annot_json)
-    # with open(os.path.join(READY_PATH,'augment','train.json'),'w') as f:
-    #     json.dump(augment_train,f)
-    # with open(os.path.join(READY_PATH,'augment','test.json'),'w') as f:
-    #     json.dump(augment_test,f)
+    augment_train,augment_test=split_by_random(augmented_annot_json)
+    with open(os.path.join(READY_PATH,'augment','train.json'),'w') as f:
+        json.dump(augment_train,f)
+    with open(os.path.join(READY_PATH,'augment','test.json'),'w') as f:
+        json.dump(augment_test,f)
 
     with open(os.path.join(READY_PATH,'train.json'),'w') as f:
-        # json.dump(augment_train+word_train+sent_train,f)
-        json.dump(word_train,f)
+        json.dump(augment_train+word_train,f)
+        # json.dump(word_train,f)
     with open(os.path.join(READY_PATH,'test.json'),'w') as f:
-        # json.dump(augment_test+word_test+sent_test,f)
-        json.dump(word_test,f)
+        json.dump(augment_test+word_test,f)
+        # json.dump(word_test,f)
