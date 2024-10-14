@@ -11,7 +11,7 @@ def data_reader():
     )
 
     save_path = r'train-data\new-data'
-    filename = 'WoXiangChiFan'
+    filename = 'FanShen'
     window_size = 150
     # 80 100 150
     # 在此修改文件路径

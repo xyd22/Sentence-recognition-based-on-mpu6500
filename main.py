@@ -31,4 +31,4 @@ class MAIN():
             identifier = Identifier()
             identifier.GetResult(mode = mode, MODEL_PATH = 'model.pt')
 
-MAIN().begin(mode = 'train', TRAIN_FOLDER = 'patient_data_expand_10')
+MAIN().begin(mode = 'predict', TRAIN_FOLDER = 'original_data_1010')

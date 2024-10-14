@@ -55,7 +55,7 @@ def augment(
 def split_by_random(data):
     N = len(data)
     random.shuffle(data)
-    return data[: int(N * 0.8)], data[int(N * 0.8) :]
+    return data[: int(N * 0.7)], data[int(N * 0.7) : int(N * 0.85)], data[int(N * 0.85) :]
 
 def prepare(ROOT_PATH, TRAIN_FOLDER):
     RAW_PATH = os.path.join(ROOT_PATH, r"train-data", TRAIN_FOLDER)
@@ -145,9 +145,11 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
         READY_PATH=READY_PATH,
     )
 
-    word_train,word_test=split_by_random(word_annot_json)
+    word_train,word_valid,word_test=split_by_random(word_annot_json)
     with open(os.path.join(READY_PATH,'word','train.json'),'w') as f:
         json.dump(word_train,f)
+    with open(os.path.join(READY_PATH,'word','valid.json'),'w') as f:
+        json.dump(word_valid,f)
     with open(os.path.join(READY_PATH,'word','test.json'),'w') as f:
         json.dump(word_test,f)
 
@@ -157,15 +159,19 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
     # with open(os.path.join(READY_PATH,'sentence','test.json'),'w') as f:
     #     json.dump(sent_test,f)
 
-    augment_train,augment_test=split_by_random(augmented_annot_json)
+    augment_train,augment_valid,augment_test=split_by_random(augmented_annot_json)
     with open(os.path.join(READY_PATH,'augment','train.json'),'w') as f:
         json.dump(augment_train,f)
+    with open(os.path.join(READY_PATH,'augment','valid.json'),'w') as f:
+        json.dump(augment_valid,f)
     with open(os.path.join(READY_PATH,'augment','test.json'),'w') as f:
         json.dump(augment_test,f)
 
     with open(os.path.join(READY_PATH,'train.json'),'w') as f:
         json.dump(augment_train+word_train,f)
         # json.dump(word_train,f)
+    with open(os.path.join(READY_PATH,'valid.json'),'w') as f:
+        json.dump(augment_valid+word_valid,f)
+        # json.dump(word_test,f)
     with open(os.path.join(READY_PATH,'test.json'),'w') as f:
         json.dump(augment_test+word_test,f)
-        # json.dump(word_test,f)

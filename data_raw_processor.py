@@ -12,7 +12,7 @@ def data_process(mpu_data, length):
     return mpu_data
 
 # filename = 'Drink water'
-def data_raw_process(filename, total_num, start_num, end_num, ROOT_PATH = rf"C:\Users\hp\Desktop\1010\new-data"):
+def data_raw_process(filename, total_num, start_num, end_num, ROOT_PATH = rf"C:\Users\hp\Desktop\Sentence-recognition-based-on-mpu6500\Sentence-recognition-based-on-mpu6500\train-data\new-data"):
     for count in range(start_num, end_num):
         # total_num = 180
         mpu0_ax = []
@@ -271,3 +271,4 @@ def data_raw_process(filename, total_num, start_num, end_num, ROOT_PATH = rf"C:\
             file.flush()
             file.write('\n')
 
+data_raw_process("WoXiangChiFan", 100, 62, 67)

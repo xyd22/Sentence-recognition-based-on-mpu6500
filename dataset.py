@@ -10,7 +10,7 @@ def normalize(mpu_data):
 
 class NeckMpuDataset(torch.utils.data.Dataset):
     def __init__(self,mode,level=None):
-        assert mode in ['train','test']
+        assert mode in ['train','valid','test']
         ROOT_PATH=os.path.join(os.path.dirname(os.path.abspath(__file__)), r'train-data\ready')
         JSON_PATH=os.path.join(ROOT_PATH,f'{mode}.json')
         if level!=None:
