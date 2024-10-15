@@ -42,9 +42,7 @@ def collate_fn(batch):
         "length": torch.hstack([i["length"] for i in batch]),
     }
 
-def train(ROOT_PATH, MODEL_PATH):
-    rand_seed = 41
-
+def train(ROOT_PATH, MODEL_PATH, rand_seed = 42):
     random.seed(rand_seed)
     torch.manual_seed(rand_seed)
     torch.cuda.manual_seed(rand_seed)
@@ -156,16 +154,21 @@ def train(ROOT_PATH, MODEL_PATH):
             acc_total += acc.item()
             count_length[0][length] += 1
 
-    # 计算测试集上的平均损失和准确率
-    for i in range(21):
-        mean_loss[0][i] /= count_length[0][i]
-        mean_acc[0][i] /= count_length[0][i]
-    # 打印测试结果
-        print(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}")
+    with open(rf"C:\Users\hp\Desktop\Sentence-recognition-based-on-mpu6500\Sentence-recognition-based-on-mpu6500\results\length\{rand_seed}.txt", 'w') as file:
+        # 计算测试集上的平均损失和准确率
+        for i in range(21):
+            mean_loss[0][i] /= count_length[0][i]
+            mean_acc[0][i] /= count_length[0][i]
+        # 打印保存测试结果
+            file.write(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}\n")
+            file.flush()
+            print(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}")
 
-    loss_total /= len(test_loader)
-    acc_total /= len(test_loader)
-    print(f"Test Result, Loss: {loss_total:.4f}, Accuracy: {acc_total:.4f}")
+        loss_total /= len(test_loader)
+        acc_total /= len(test_loader)
+        file.write(f"Test Result, Loss: {loss_total:.4f}, Accuracy: {acc_total:.4f}\n")
+        file.flush()
+        print(f"Test Result, Loss: {loss_total:.4f}, Accuracy: {acc_total:.4f}")
 
 
     torch.save(model.state_dict(), MODEL_PATH)

@@ -14,8 +14,9 @@ class MAIN():
         assert mode in ['train', 'test', 'predict', 'collect-data']
         if mode == 'train':
             prepare(ROOT_PATH, TRAIN_FOLDER)
-            train(ROOT_PATH, MODEL_PATH)
-        
+            for i in range(20):
+                train(ROOT_PATH, MODEL_PATH, rand_seed=i)
+            
         if mode == 'collect-data':
             save_path = data_reader()
             filename = os.path.split(os.path.dirname(save_path))[1]
