@@ -5,6 +5,7 @@ import torch.utils
 import torch.nn as nn
 import torch.optim as optim
 import os
+import numpy as np
 from tqdm import tqdm
 from dataset import NeckMpuDataset
 from model import Mpu2TextClassifier
@@ -38,19 +39,21 @@ def collate_fn(batch):
         "label": label,
         "cls_label": torch.hstack([i["cls_label"] for i in batch]),
         "pad_mask": pad_mask,
+        "length": torch.hstack([i["length"] for i in batch]),
     }
 
 def train(ROOT_PATH, MODEL_PATH):
+    rand_seed = 41
 
-    random.seed(42)
-    torch.manual_seed(42)
-    torch.cuda.manual_seed(42)
+    random.seed(rand_seed)
+    torch.manual_seed(rand_seed)
+    torch.cuda.manual_seed(rand_seed)
 
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     with open(os.path.join(ROOT_PATH, r"train-data\\ready\\word2num.json"), "r") as f:
         word2num_dict = json.load(f)
 
-    num_epochs = 15
+    num_epochs = 50
     batch_size = 32
 
 
@@ -111,9 +114,9 @@ def train(ROOT_PATH, MODEL_PATH):
 
         mean_loss = 0.0
         mean_acc = 0.0
-        # 测试阶段
+        # 验证阶段
         model.eval()  # 将模型设置为评估模式
-        with torch.no_grad():  # 确保不会计算梯度，因为我们不在测试集上训练
+        with torch.no_grad():  # 确保不会计算梯度，因为我们不在验证集上训练
             for input_dict in valid_loader:
                 for key in input_dict.keys():
                     if isinstance(input_dict[key], torch.Tensor):
@@ -131,8 +134,11 @@ def train(ROOT_PATH, MODEL_PATH):
         # 打印测试结果
         print(f"Test Epoch {epoch + 1}, Loss: {mean_loss:.4f}, Accuracy: {mean_acc:.4f}")
 
-    mean_loss = 0.0
-    mean_acc = 0.0
+    mean_loss = np.zeros((1, 21))
+    mean_acc = np.zeros((1, 21))
+    loss_total = 0.0
+    acc_total = 0.0
+    count_length = np.zeros((1, 21))
     # 测试阶段
     model.eval()  # 将模型设置为评估模式
     with torch.no_grad():  # 确保不会计算梯度，因为我们不在测试集上训练
@@ -143,15 +149,23 @@ def train(ROOT_PATH, MODEL_PATH):
             output_dict = model(input_dict)
             loss = output_dict["loss"]
             acc = output_dict["acc"]
-            mean_loss += loss.item()
-            mean_acc += acc.item()
+            length = output_dict["length"]
+            mean_loss[0][length] += loss.item()
+            loss_total += loss.item()
+            mean_acc[0][length] += acc.item()
+            acc_total += acc.item()
+            count_length[0][length] += 1
 
     # 计算测试集上的平均损失和准确率
-    mean_loss /= len(test_loader)
-    mean_acc /= len(test_loader)
-
+    for i in range(21):
+        mean_loss[0][i] /= count_length[0][i]
+        mean_acc[0][i] /= count_length[0][i]
     # 打印测试结果
-    print(f"Test Result, Loss: {mean_loss:.4f}, Accuracy: {mean_acc:.4f}")
+        print(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}")
+
+    loss_total /= len(test_loader)
+    acc_total /= len(test_loader)
+    print(f"Test Result, Loss: {loss_total:.4f}, Accuracy: {acc_total:.4f}")
 
 
     torch.save(model.state_dict(), MODEL_PATH)

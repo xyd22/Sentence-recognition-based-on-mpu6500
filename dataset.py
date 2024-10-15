@@ -25,5 +25,6 @@ class NeckMpuDataset(torch.utils.data.Dataset):
         return {
             'data':normalize(torch.load(self.data[idx]['path'])),
             'label':torch.tensor(self.data[idx]['label'],dtype=torch.long),
-            'cls_label':torch.tensor(self.data[idx]['cls_label'],dtype=torch.long)
+            'cls_label':torch.tensor(self.data[idx]['cls_label'],dtype=torch.long),
+            'length':torch.tensor(self.data[idx]['length'],dtype=torch.long)
         }

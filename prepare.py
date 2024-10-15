@@ -46,7 +46,7 @@ def augment(
         for j in patch:
             label += j["label"]
         augmented_annot_json.append(
-            {"path": save_path, "label": label, "cls_label": more_than_one_word}
+            {"path": save_path, "label": label, "cls_label": more_than_one_word, "length": seq_length}
         )
 
     return augmented_annot_json
@@ -103,44 +103,46 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
                         "path": save_path,
                         "label": [word2num_dict[word]],
                         "cls_label": word2num_dict[word],
+                        "length": 1
                     }
                 )
                 counter += 1
                 # print(counter)
 
-
-    # sentence_annot_json = []
-    # for sentence in sentence_list:
-    #     RAW_SENTENCE_PATH = os.path.join(RAW_PATH, sentence)
-    #     READY_SENTENCE_PATH = os.path.join(READY_PATH, "sentence", sentence)
-    #     os.makedirs(READY_SENTENCE_PATH, exist_ok=True)
-    #     counter = 0
-    #     for filename in os.listdir(RAW_SENTENCE_PATH):
-    #         if "raw.txt" in filename:
-    #             data = read_txt_to_tensor(os.path.join(RAW_SENTENCE_PATH, filename))
-    #             save_path = os.path.join(READY_SENTENCE_PATH, f"{counter}.pt")
-    #             torch.save(data, save_path)
-    #             sentence_annot_json.append(
-    #                 {
-    #                     "path": save_path,
-    #                     "label": [
-    #                         word2num_dict[word.lower()]
-    #                         for word in re.split(r",|\s", sentence)
-    #                         if word
-    #                     ],
-    #                     "cls_label": word2num_dict["<more_than_one_word>"],
-    #                 }
-    #             )
-    #             counter += 1
+    # 对于没有句子的数据库要删掉
+    sentence_annot_json = []
+    for sentence in sentence_list:
+        RAW_SENTENCE_PATH = os.path.join(RAW_PATH, sentence)
+        READY_SENTENCE_PATH = os.path.join(READY_PATH, "sentence", sentence)
+        os.makedirs(READY_SENTENCE_PATH, exist_ok=True)
+        counter = 0
+        for filename in os.listdir(RAW_SENTENCE_PATH):
+            if "raw.txt" in filename:
+                data = read_txt_to_tensor(os.path.join(RAW_SENTENCE_PATH, filename))
+                save_path = os.path.join(READY_SENTENCE_PATH, f"{counter}.pt")
+                torch.save(data, save_path)
+                label = [word2num_dict[word.lower()]
+                            for word in re.split(r",|\s", sentence)
+                            if word
+                        ]
+                sentence_annot_json.append(
+                    {
+                        "path": save_path,
+                        "label": label,
+                        "cls_label": word2num_dict["<more_than_one_word>"],
+                        "length": len(label)
+                    }
+                )
+                counter += 1
 
                 
 
     augmented_annot_json = augment(
-        # word_annot_json + sentence_annot_json,
-        word_annot_json,
+        word_annot_json + sentence_annot_json,
+        # word_annot_json,
         target_data_num=3000,
         max_seq_length=20,
-        min_seq_length=10,
+        min_seq_length=4,
         more_than_one_word=word2num_dict["<more_than_one_word>"],
         READY_PATH=READY_PATH,
     )
@@ -153,11 +155,13 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
     with open(os.path.join(READY_PATH,'word','test.json'),'w') as f:
         json.dump(word_test,f)
 
-    # sent_train,sent_test=split_by_random(sentence_annot_json)
-    # with open(os.path.join(READY_PATH,'sentence','train.json'),'w') as f:
-    #     json.dump(sent_train,f)
-    # with open(os.path.join(READY_PATH,'sentence','test.json'),'w') as f:
-    #     json.dump(sent_test,f)
+    sent_train,sent_test,sent_valid=split_by_random(sentence_annot_json)
+    with open(os.path.join(READY_PATH,'sentence','train.json'),'w') as f:
+        json.dump(sent_train,f)
+    with open(os.path.join(READY_PATH,'sentence','valid.json'),'w') as f:
+        json.dump(sent_valid,f)
+    with open(os.path.join(READY_PATH,'sentence','test.json'),'w') as f:
+        json.dump(sent_test,f)
 
     augment_train,augment_valid,augment_test=split_by_random(augmented_annot_json)
     with open(os.path.join(READY_PATH,'augment','train.json'),'w') as f:
@@ -168,10 +172,10 @@ def prepare(ROOT_PATH, TRAIN_FOLDER):
         json.dump(augment_test,f)
 
     with open(os.path.join(READY_PATH,'train.json'),'w') as f:
-        json.dump(augment_train+word_train,f)
+        json.dump(augment_train+word_train+sent_train,f)
         # json.dump(word_train,f)
     with open(os.path.join(READY_PATH,'valid.json'),'w') as f:
-        json.dump(augment_valid+word_valid,f)
+        json.dump(augment_valid+word_valid+sent_valid,f)
         # json.dump(word_test,f)
     with open(os.path.join(READY_PATH,'test.json'),'w') as f:
-        json.dump(augment_test+word_test,f)
+        json.dump(augment_test+word_test+sent_test,f)

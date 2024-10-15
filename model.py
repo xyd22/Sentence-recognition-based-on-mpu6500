@@ -75,6 +75,7 @@ class Mpu2TextClassifier(nn.Module):
             "acc": acc,
             "loss": self.ctc_loss(logits, input_dict["label"], pad_mask)
             + self.ce_criterion(cls_logits, input_dict["cls_label"]),
+            "length": input_dict['length'].tolist()
         }
 
     def compute_acc(self, target_label, target_cls_label, label, cls_label):

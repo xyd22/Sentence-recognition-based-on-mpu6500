@@ -31,4 +31,4 @@ class MAIN():
             identifier = Identifier()
             identifier.GetResult(mode = mode, MODEL_PATH = 'model.pt')
 
-MAIN().begin(mode = 'predict', TRAIN_FOLDER = 'original_data_1010')
+MAIN().begin(mode = 'train', TRAIN_FOLDER = 'train-data-xyd')
