@@ -10,13 +10,14 @@ warnings.filterwarnings("ignore")
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 class MAIN():
-    def begin(self, mode, TRAIN_FOLDER, MODEL_PATH = 'model.pt'):
+    def begin(self, mode, FOLDER, MODEL_PATH = 'model.pt'):
         assert mode in ['train', 'test', 'predict', 'collect-data']
         if mode == 'train':
-            prepare(ROOT_PATH, TRAIN_FOLDER)
-            for i in range(20):
-                train(ROOT_PATH, MODEL_PATH, rand_seed=i)
-            
+            prepare(ROOT_PATH, FOLDER)
+            train(ROOT_PATH, MODEL_PATH)
+            # for i in range(1, 20):
+                # train(ROOT_PATH, MODEL_PATH, rand_seed=i)
+        
         if mode == 'collect-data':
             save_path = data_reader()
             filename = os.path.split(os.path.dirname(save_path))[1]
@@ -30,6 +31,7 @@ class MAIN():
 
         if mode != 'train' and mode != 'collect-data':
             identifier = Identifier()
-            identifier.GetResult(mode = mode, MODEL_PATH = 'model.pt')
+            identifier.GetResult(mode = mode, FOLDER_PATH = FOLDER, MODEL_PATH = 'model.pt')
 
-MAIN().begin(mode = 'train', TRAIN_FOLDER = 'train-data-xyd')
+# MAIN().begin(mode = 'train', FOLDER = r'train-data-hzf+patient+xyd')
+MAIN().begin(mode = 'test', FOLDER = r'TestData\data-xyd-test')

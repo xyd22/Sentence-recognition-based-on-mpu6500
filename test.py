@@ -10,13 +10,21 @@ from dataset import normalize
 def read_txt_to_tensor(txt_path):
     data_all = []
     with open(txt_path, "r") as f:
-        cnt = 0
+        count_line = 0
         for line in f:
+            count_line += 1
+    with open(txt_path, "r") as f:
+        cnt = 0
+        count = 0
+        for line in f:   
             line_data = line.strip()
-            if len(line_data) <= 30:
+            count += 1
+            if count_line == 42 and len(line_data) <= 30:
                 cnt = cnt + 1
                 continue
-            if cnt == 3:
+            if count_line == 42 and cnt == 3:
+                continue
+            if count_line == 36 and count >= 13 and count <= 18:
                 continue
             data_num = re.findall(r"(-?\d+)", line_data[0 : len(line_data)])
             data_num = [float(data_num[i]) for i in range(len(data_num))]
@@ -49,14 +57,15 @@ def collate_fn(batch):
         "label": label,
         "cls_label": torch.hstack([i["cls_label"] for i in batch]),
         "pad_mask": pad_mask,
+        "length": torch.hstack([i["length"] for i in batch]),
     }
 class Identifier():
-    def GetResult(self, mode, MODEL_PATH):
+    def GetResult(self, mode, FOLDER_PATH, MODEL_PATH):
         assert mode in ['test', 'predict']
         ROOT_PATH = os.path.dirname(os.path.abspath(__file__))       # 项目根目录
 
         if mode == 'test':
-            TEST_PATH = os.path.join(ROOT_PATH, r'TestData\fanshen-new')      # 测试项目路径
+            TEST_PATH = os.path.join(ROOT_PATH, FOLDER_PATH)      # 测试项目路径
         if mode == 'predict':
             TEST_PATH = os.path.join(ROOT_PATH, r'TestData\real-time-identify')      # 测试项目路径
 
@@ -82,6 +91,7 @@ class Identifier():
                             "path": os.path.join(READY_WORD_PATH, i, j[:-4] + '.pt'),
                             "label": [word2num_dict[i]],
                             "cls_label": word2num_dict[i],
+                            "length": 1
                         }
                     )
         if mode == 'predict':
@@ -94,6 +104,7 @@ class Identifier():
                         "path": os.path.join(READY_WORD_PATH, i[:-4] + '.pt'),
                         "label": [],
                         "cls_label": 1,
+                        "length": 1
                     }
                 )
         with open(os.path.join(READY_WORD_PATH, 'test.json'),'w') as f:
@@ -128,7 +139,8 @@ class Identifier():
                 return {
                     'data':normalize(torch.load(self.data[idx]['path'])),
                     'label':torch.tensor(self.data[idx]['label'],dtype=torch.long),
-                    'cls_label':torch.tensor(self.data[idx]['cls_label'],dtype=torch.long)
+                    'cls_label':torch.tensor(self.data[idx]['cls_label'],dtype=torch.long),
+                    'length':torch.tensor(self.data[idx]['length'],dtype=torch.long)
                 }
 
         test_dataset = MpuDataset()
@@ -152,7 +164,7 @@ class Identifier():
                 self.correct = self.correct + int(iscorrect)
                 self.acc = self.correct / self.sampleNum
             def __str__(self):
-                return f"sampleNum = {self.sampleNum}, correct = {self.correct}, acc = {self.acc:.2f}"
+                return f"sampleNum = {self.sampleNum}, correct = {self.correct}, acc = {self.acc:.4f}"
 
         if mode == 'test':
             result = {}

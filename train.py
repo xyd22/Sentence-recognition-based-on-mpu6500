@@ -51,7 +51,7 @@ def train(ROOT_PATH, MODEL_PATH, rand_seed = 42):
     with open(os.path.join(ROOT_PATH, r"train-data\\ready\\word2num.json"), "r") as f:
         word2num_dict = json.load(f)
 
-    num_epochs = 50
+    num_epochs = 20
     batch_size = 32
 
 
@@ -160,14 +160,14 @@ def train(ROOT_PATH, MODEL_PATH, rand_seed = 42):
             mean_loss[0][i] /= count_length[0][i]
             mean_acc[0][i] /= count_length[0][i]
         # 打印保存测试结果
-            file.write(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}\n")
-            file.flush()
+            # file.write(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}\n")
+            # file.flush()
             print(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}")
 
         loss_total /= len(test_loader)
         acc_total /= len(test_loader)
-        file.write(f"Test Result, Loss: {loss_total:.4f}, Accuracy: {acc_total:.4f}\n")
-        file.flush()
+        # file.write(f"Test Result, Loss: {loss_total:.4f}, Accuracy: {acc_total:.4f}\n")
+        # file.flush()
         print(f"Test Result, Loss: {loss_total:.4f}, Accuracy: {acc_total:.4f}")
 
 
