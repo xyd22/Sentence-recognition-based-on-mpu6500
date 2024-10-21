@@ -1,0 +1,22 @@
+Test on Length 0, Loss: nan, Accuracy: nan
+Test on Length 1, Loss: 0.0331, Accuracy: 0.9330
+Test on Length 2, Loss: 0.0240, Accuracy: 0.9484
+Test on Length 3, Loss: 0.0396, Accuracy: 0.9317
+Test on Length 4, Loss: 0.0361, Accuracy: 0.9413
+Test on Length 5, Loss: 0.0412, Accuracy: 0.9362
+Test on Length 6, Loss: 0.0276, Accuracy: 0.9330
+Test on Length 7, Loss: 0.0271, Accuracy: 0.9282
+Test on Length 8, Loss: 0.0330, Accuracy: 0.9271
+Test on Length 9, Loss: 0.0328, Accuracy: 0.9211
+Test on Length 10, Loss: 0.0334, Accuracy: 0.9236
+Test on Length 11, Loss: 0.0450, Accuracy: 0.9219
+Test on Length 12, Loss: 0.0351, Accuracy: 0.9244
+Test on Length 13, Loss: 0.0418, Accuracy: 0.9279
+Test on Length 14, Loss: 0.0459, Accuracy: 0.9258
+Test on Length 15, Loss: 0.0526, Accuracy: 0.9211
+Test on Length 16, Loss: 0.0345, Accuracy: 0.9300
+Test on Length 17, Loss: 0.0280, Accuracy: 0.9297
+Test on Length 18, Loss: 0.0433, Accuracy: 0.9192
+Test on Length 19, Loss: 0.0333, Accuracy: 0.9241
+Test on Length 20, Loss: nan, Accuracy: nan
+Test Result, Loss: 0.0331, Accuracy: 0.9330

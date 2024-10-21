@@ -1,7 +1,7 @@
 Test on Length 0, Loss: nan, Accuracy: nan
 Test on Length 1, Loss: 0.0175, Accuracy: 0.9513
-Test on Length 2, Loss: nan, Accuracy: nan
-Test on Length 3, Loss: nan, Accuracy: nan
+Test on Length 2, Loss: 0.0202, Accuracy: 0.9495
+Test on Length 3, Loss: 0.0214, Accuracy: 0.9469
 Test on Length 4, Loss: 0.0202, Accuracy: 0.9444
 Test on Length 5, Loss: 0.0170, Accuracy: 0.9495
 Test on Length 6, Loss: 0.0214, Accuracy: 0.9462
