@@ -42,7 +42,7 @@ def collate_fn(batch):
         "length": torch.hstack([i["length"] for i in batch]),
     }
 
-def train(ROOT_PATH, MODEL_PATH, rand_seed = 42):
+def train(ROOT_PATH, MODEL_PATH, file, rand_seed = 42):
     random.seed(rand_seed)
     torch.manual_seed(rand_seed)
     torch.cuda.manual_seed(rand_seed)
@@ -51,7 +51,7 @@ def train(ROOT_PATH, MODEL_PATH, rand_seed = 42):
     with open(os.path.join(ROOT_PATH, r"train-data\\ready\\word2num.json"), "r") as f:
         word2num_dict = json.load(f)
 
-    num_epochs = 50
+    num_epochs = 20
     batch_size = 32
 
 
@@ -129,7 +129,10 @@ def train(ROOT_PATH, MODEL_PATH, rand_seed = 42):
         mean_loss /= len(valid_loader)
         mean_acc /= len(valid_loader)
 
-        # 打印测试结果
+        # 打印测试结果    
+        # with open(rf"C:\Users\hp\Desktop\Sentence-recognition-based-on-mpu6500\Sentence-recognition-based-on-mpu6500\results\loss&acc\{rand_seed}.txt", 'w') as file:
+        file.write(f"Test Epoch {epoch + 1}, Loss: {mean_loss:.4f}, Accuracy: {mean_acc:.4f}\n")
+        file.flush()
         print(f"Test Epoch {epoch + 1}, Loss: {mean_loss:.4f}, Accuracy: {mean_acc:.4f}")
 
     mean_loss = np.zeros((1, 21))
@@ -154,14 +157,14 @@ def train(ROOT_PATH, MODEL_PATH, rand_seed = 42):
             acc_total += acc.item()
             count_length[0][length] += 1
 
-    with open(rf"C:\Users\hp\Desktop\Sentence-recognition-based-on-mpu6500\Sentence-recognition-based-on-mpu6500\results\length\{rand_seed}.txt", 'w') as file:
+    # with open(rf"C:\Users\hp\Desktop\Sentence-recognition-based-on-mpu6500\Sentence-recognition-based-on-mpu6500\results\loss&acc\{rand_seed}.txt", 'w') as file:
         # 计算测试集上的平均损失和准确率
         for i in range(21):
             mean_loss[0][i] /= count_length[0][i]
             mean_acc[0][i] /= count_length[0][i]
         # 打印保存测试结果
-            file.write(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}\n")
-            file.flush()
+            # file.write(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}\n")
+            # file.flush()
             print(f"Test on Length {i}, Loss: {mean_loss[0][i]:.4f}, Accuracy: {mean_acc[0][i]:.4f}")
 
         loss_total /= len(test_loader)
