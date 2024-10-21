@@ -1,0 +1,3 @@
+Test Epoch 1, Loss: 0.3963, Accuracy: 0.4358
+Test Epoch 2, Loss: 0.1068, Accuracy: 0.6587
+Test Result, Loss: 0.1001, Accuracy: 0.6483

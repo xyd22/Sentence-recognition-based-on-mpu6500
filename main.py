@@ -14,8 +14,10 @@ class MAIN():
         assert mode in ['train', 'test', 'predict', 'collect-data']
         if mode == 'train':
             prepare(ROOT_PATH, FOLDER)
-            train(ROOT_PATH, MODEL_PATH)
-            # for i in range(1, 20):
+            # train(ROOT_PATH, MODEL_PATH)
+            for i in range(1):
+                with open(os.path.join(ROOT_PATH, rf'results\person\{i}_raw.txt'), 'w') as file:
+                    train(ROOT_PATH, MODEL_PATH, file, rand_seed=i)
                 # train(ROOT_PATH, MODEL_PATH, rand_seed=i)
         
         if mode == 'collect-data':
@@ -33,5 +35,5 @@ class MAIN():
             identifier = Identifier()
             identifier.GetResult(mode = mode, FOLDER_PATH = FOLDER, MODEL_PATH = 'model.pt')
 
-# MAIN().begin(mode = 'train', FOLDER = r'train-data-hzf+patient+xyd')
-MAIN().begin(mode = 'test', FOLDER = r'TestData\data-xyd-test')
+# MAIN().begin(mode = 'train', FOLDER = r'train-data-hzf+xyd')
+MAIN().begin(mode = 'test', FOLDER = r'TestData\fanshen-new')
