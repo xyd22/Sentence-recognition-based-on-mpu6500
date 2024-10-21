@@ -11,15 +11,6 @@ from dataset import NeckMpuDataset
 from model import Mpu2TextClassifier
 from torch.nn.utils.rnn import pad_sequence
 
-def batched_bincount(x, max_value, dim=2):
-    target = torch.zeros(
-        x.shape[0], x.shape[1], max_value + 1, dtype=x.dtype, device=x.device
-    )
-    values = torch.ones_like(x)
-    target.scatter_add_(dim, x, values)
-    return target
-
-
 def collate_fn(batch):
     label = pad_sequence([i["label"] for i in batch], batch_first=True, padding_value=0)
     data = pad_sequence(
@@ -29,16 +20,11 @@ def collate_fn(batch):
     data = torch.cat(
         [data, torch.zeros(size=(data.shape[0], data.shape[1], pad_length))], dim=-1
     )
-    pad_mask = (data == 0)[:, 0, :].reshape(data.shape[0], -1, 20)
-    pad_mask = torch.argmax(
-        batched_bincount(pad_mask.to(torch.int64), max_value=1), dim=-1
-    )
 
     return {
         "data": data,
         "label": label,
         "cls_label": torch.hstack([i["cls_label"] for i in batch]),
-        "pad_mask": pad_mask,
         "length": torch.hstack([i["length"] for i in batch]),
     }
 
