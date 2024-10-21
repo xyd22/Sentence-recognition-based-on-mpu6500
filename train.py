@@ -11,14 +11,6 @@ from dataset import NeckMpuDataset
 from model import Mpu2TextClassifier
 from torch.nn.utils.rnn import pad_sequence
 
-def batched_bincount(x, max_value, dim=2):
-    target = torch.zeros(
-        x.shape[0], x.shape[1], max_value + 1, dtype=x.dtype, device=x.device
-    )
-    values = torch.ones_like(x)
-    target.scatter_add_(dim, x, values)
-    return target
-
 
 def collate_fn(batch):
     label = pad_sequence([i["label"] for i in batch], batch_first=True, padding_value=0)
@@ -29,16 +21,11 @@ def collate_fn(batch):
     data = torch.cat(
         [data, torch.zeros(size=(data.shape[0], data.shape[1], pad_length))], dim=-1
     )
-    pad_mask = (data == 0)[:, 0, :].reshape(data.shape[0], -1, 20)
-    pad_mask = torch.argmax(
-        batched_bincount(pad_mask.to(torch.int64), max_value=1), dim=-1
-    )
 
     return {
         "data": data,
         "label": label,
         "cls_label": torch.hstack([i["cls_label"] for i in batch]),
-        "pad_mask": pad_mask,
         "length": torch.hstack([i["length"] for i in batch]),
     }
 
@@ -51,7 +38,7 @@ def train(ROOT_PATH, MODEL_PATH, file, rand_seed = 42):
     with open(os.path.join(ROOT_PATH, r"train-data\\ready\\word2num.json"), "r") as f:
         word2num_dict = json.load(f)
 
-    num_epochs = 20
+    num_epochs = 5
     batch_size = 32
 
 
@@ -78,6 +65,7 @@ def train(ROOT_PATH, MODEL_PATH, file, rand_seed = 42):
         dropout=0.5,
         cls_num=len(word2num_dict),
         more_than_one_word=word2num_dict["<more_than_one_word>"],
+        depth=3
     ).to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)

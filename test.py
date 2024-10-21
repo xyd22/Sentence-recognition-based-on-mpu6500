@@ -60,7 +60,7 @@ def collate_fn(batch):
         "length": torch.hstack([i["length"] for i in batch]),
     }
 class Identifier():
-    def GetResult(self, mode, FOLDER_PATH, MODEL_PATH):
+    def GetResult(self, mode, FOLDER_PATH, MODEL_PATH, SAVE_PATH):
         assert mode in ['test', 'predict']
         ROOT_PATH = os.path.dirname(os.path.abspath(__file__))       # 项目根目录
 
@@ -175,8 +175,13 @@ class Identifier():
                         result[res] = Result()
                     result[res].AddSample(i['target'][j] == i['decoded'][j])
 
-            for key, value in result.items():
-                print(f"{key}:\t{value}")
+
+            with open(SAVE_PATH, 'w') as save_file:
+                for key, value in result.items():
+                    print(f"{key}:\t{value}")
+                    save_file.write(f"{key}:\t{value}\n")
+                    save_file.flush()
+
         if mode == 'predict':
             result = {}
             for i in output_result:

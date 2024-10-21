@@ -1,0 +1,11 @@
+Test Epoch 1, Loss: 0.9639, Accuracy: 0.4117
+Test Epoch 2, Loss: 0.2394, Accuracy: 0.5452
+Test Epoch 3, Loss: 0.0509, Accuracy: 0.8383
+Test Epoch 4, Loss: 0.0332, Accuracy: 0.8942
+Test Epoch 5, Loss: 0.0433, Accuracy: 0.8518
+Test Epoch 6, Loss: 0.0234, Accuracy: 0.9348
+Test Epoch 7, Loss: 0.0132, Accuracy: 0.9638
+Test Epoch 8, Loss: 0.0307, Accuracy: 0.8963
+Test Epoch 9, Loss: 0.0094, Accuracy: 0.9732
+Test Epoch 10, Loss: 0.0161, Accuracy: 0.9700
+Test Result, Loss: 0.0272, Accuracy: 0.9663

@@ -10,14 +10,14 @@ warnings.filterwarnings("ignore")
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 class MAIN():
-    def begin(self, mode, FOLDER, MODEL_PATH = 'model.pt'):
+    def begin(self, mode, FOLDER, TEST_SAVE_PATH, MODEL_PATH = 'model.pt', RAND_SEED = 42):
         assert mode in ['train', 'test', 'predict', 'collect-data']
         if mode == 'train':
             prepare(ROOT_PATH, FOLDER)
             # train(ROOT_PATH, MODEL_PATH)
-            for i in range(1):
-                with open(os.path.join(ROOT_PATH, rf'results\person\{i}_raw.txt'), 'w') as file:
-                    train(ROOT_PATH, MODEL_PATH, file, rand_seed=i)
+            # for i in range(1):
+            with open(os.path.join(ROOT_PATH, TEST_SAVE_PATH), 'w') as file:
+                train(ROOT_PATH, MODEL_PATH, file, rand_seed = RAND_SEED)
                 # train(ROOT_PATH, MODEL_PATH, rand_seed=i)
         
         if mode == 'collect-data':
@@ -33,7 +33,11 @@ class MAIN():
 
         if mode != 'train' and mode != 'collect-data':
             identifier = Identifier()
-            identifier.GetResult(mode = mode, FOLDER_PATH = FOLDER, MODEL_PATH = 'model.pt')
+            identifier.GetResult(mode = mode, FOLDER_PATH = FOLDER, MODEL_PATH = 'model.pt', SAVE_PATH = TEST_SAVE_PATH)
 
-# MAIN().begin(mode = 'train', FOLDER = r'train-data-hzf+xyd')
-MAIN().begin(mode = 'test', FOLDER = r'TestData\fanshen-new')
+for i in range(1):
+    MAIN().begin(mode = 'train', FOLDER = r'train-data-hzf+patient+xyd_0.7', RAND_SEED = i, TEST_SAVE_PATH = os.path.join(ROOT_PATH, rf'results\person\results{i}.txt'))
+    MAIN().begin(mode = 'test', FOLDER = r'TestData\data-xyd-test-0.3', TEST_SAVE_PATH = os.path.join(ROOT_PATH, rf'results\person\xydfew\{i}.txt'))
+    # MAIN().begin(mode = 'test', FOLDER = r'TestData\data-hzf-test-0.3', TEST_SAVE_PATH = os.path.join(ROOT_PATH, rf'results\person\hzf\{i}.txt'))
+    # MAIN().begin(mode = 'test', FOLDER = r'TestData\data-patient-test-0.3', TEST_SAVE_PATH = os.path.join(ROOT_PATH, rf'results\person\patient\{i}.txt'))
+# MAIN().begin(mode = 'predict', FOLDER = r'TestData\real-time-identify')

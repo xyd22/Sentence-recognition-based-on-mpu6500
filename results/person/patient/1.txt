@@ -1,0 +1,4 @@
+FanShen:	sampleNum = 165, correct = 152, acc = 0.9212
+WoXiangChiFan:	sampleNum = 165, correct = 165, acc = 1.0000
+XiaChuang:	sampleNum = 165, correct = 150, acc = 0.9091
+XieXieNi:	sampleNum = 165, correct = 164, acc = 0.9939

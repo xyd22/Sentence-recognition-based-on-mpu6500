@@ -16,48 +16,99 @@ class Mpu2TextClassifier(nn.Module):
         dropout,
         cls_num,
         more_than_one_word,
+        depth,
         if_print=False,
     ):
         super().__init__()
+        self.window_size = window_size
         self.conv_head = nn.Sequential(
-            nn.Conv1d(
+            ConvBlock(
                 in_channels=mpu_channels,
                 out_channels=n_dim,
-                kernel_size=2,
-                stride=2,
+                kernel_size=3,
+                stride=1,
+                padding=1,
             ),
-            nn.ReLU(),
+            ConvBlock(
+                in_channels=n_dim,
+                out_channels=n_dim,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+            ),
             nn.Conv1d(
                 in_channels=n_dim,
                 out_channels=n_dim,
-                kernel_size=window_size // 2,
-                stride=window_size // 2,
+                kernel_size=window_size,
+                stride=window_size,
+                padding=0,
             ),
+            nn.BatchNorm1d(n_dim),
+        )
+        self.register_buffer(name="pad_kernel_size_3", tensor=torch.ones((1, 1, 3)))
+        self.register_buffer(
+            name="pad_kernel_size_window", tensor=torch.ones((1, 1, window_size))
         )
         self.cls_token = nn.Parameter(torch.rand(1, 1, n_dim))
-        self.pos_embedding = nn.Parameter(torch.rand((1, 120, n_dim)))
-        self.block1 = Block(n_dim, n_head, dropout)
-        self.block2 = Block(n_dim, n_head, dropout)
+        self.register_buffer(
+            name="pos_embedding",
+            tensor=self.get_position_embedding(sequence_length=120, d_model=n_dim),
+        )
+        self.alpha = nn.Parameter(torch.ones(1))
+
+        self.blocks = nn.ModuleList(
+            [
+                Block(n_dim, n_head, dropout, local_size=3, block_size=120)
+                for i in range(depth)
+            ]
+        )
+
         self.cls_head = nn.Linear(n_dim, cls_num)
         self.ctc_criterion = nn.CTCLoss(blank=0, reduction="mean")
         self.ce_criterion = nn.CrossEntropyLoss()
         self.more_than_one_word = more_than_one_word
         self.if_print = if_print
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), r'train-data\ready\word2num.json'),'r') as f:
-            word2num_dict=json.load(f)
-        self.num2word_dict={value:key for key,value in word2num_dict.items()}
+        with open(
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                r"train-data\ready\word2num.json",
+            ),
+            "r",
+        ) as f:
+            word2num_dict = json.load(f)
+        self.num2word_dict = {value: key for key, value in word2num_dict.items()}
 
     def forward(self, input_dict):
         x = input_dict["data"]
-        pad_mask = input_dict["pad_mask"]
+        pad_mask = F.conv1d(
+            x[:, 0, :].unsqueeze(1),
+            self.pad_kernel_size_3,
+            bias=None,
+            stride=1,
+            padding=1,
+        )
+        pad_mask = F.conv1d(
+            pad_mask, self.pad_kernel_size_3, bias=None, stride=1, padding=1
+        )
+        pad_mask = (
+            F.conv1d(
+                pad_mask,
+                self.pad_kernel_size_window,
+                bias=None,
+                stride=self.window_size,
+                padding=0,
+            ).squeeze()
+            == 0
+        )
+
         x = self.conv_head(x).transpose(-1, -2).contiguous()
         x = torch.cat([self.cls_token.repeat(x.shape[0], 1, 1), x], dim=1)
         pad_mask = torch.cat(
-            [torch.zeros(size=(pad_mask.shape[0], 1), device=x.device), pad_mask], dim=1
+            [torch.zeros(size=(pad_mask.shape[0], 1), device=x.device,dtype=torch.bool), pad_mask], dim=1
         )
-        x = x + self.pos_embedding[:, : x.shape[1], :]
-        x = self.block1(x, pad_mask)
-        x = self.block2(x, pad_mask)
+        x = x + self.pos_embedding[: x.shape[1]] * self.alpha
+        for block in self.blocks:
+            x = block(x, pad_mask)
         logits = self.cls_head(x)
         cls_logits = logits[:, 0, :]
         logits = logits[:, 1:, :]
@@ -70,13 +121,30 @@ class Mpu2TextClassifier(nn.Module):
         )
 
         return {
-            "target": input_dict['label'].tolist(),
+            "target": input_dict["label"].tolist(),
             "decoded": decoded,
             "acc": acc,
             "loss": self.ctc_loss(logits, input_dict["label"], pad_mask)
             + self.ce_criterion(cls_logits, input_dict["cls_label"]),
-            "length": input_dict['length'].tolist()
+            "length": input_dict["length"].tolist(),
         }
+
+    def get_position_embedding(self, sequence_length, d_model):
+        pe = torch.zeros(
+            sequence_length, d_model, dtype=torch.float, requires_grad=False
+        )
+        base = 10000
+        pos = torch.arange(d_model // 2, dtype=torch.float)
+        pos = 2 * pos / d_model
+        exp_pos = 1.0 / torch.pow(base, pos)
+        out = (
+            torch.arange(sequence_length, dtype=torch.float)[:, None] @ exp_pos[None, :]
+        )
+        sin = torch.sin(out)
+        cos = torch.cos(out)
+        pe[:, 0::2] = sin
+        pe[:, 1::2] = cos
+        return pe
 
     def compute_acc(self, target_label, target_cls_label, label, cls_label):
         one_word_correct_num = torch.count_nonzero(
@@ -110,8 +178,13 @@ class Mpu2TextClassifier(nn.Module):
 
         if self.if_print:
             for key, value in {
-                "target": [' '.join([self.num2word_dict[j] for j in i if j!=0]) for i in target_label.tolist()],
-                "decoded": [' '.join([self.num2word_dict[j] for j in i]) for i in decoded],
+                "target": [
+                    " ".join([self.num2word_dict[j] for j in i if j != 0])
+                    for i in target_label.tolist()
+                ],
+                "decoded": [
+                    " ".join([self.num2word_dict[j] for j in i]) for i in decoded
+                ],
                 "target_cls": target_cls_label.tolist(),
                 "cls_label": cls_label.tolist(),
                 "one": one_word_correct_num,
@@ -166,9 +239,9 @@ class Mpu2TextClassifier(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, n_dim, n_head, dropout):
+    def __init__(self, n_dim, n_head, dropout, local_size, block_size):
         super().__init__()
-        self.attn = MultiHeadAttention(n_dim, n_head, dropout)
+        self.attn = MultiHeadAttention(n_dim, n_head, dropout, local_size, block_size)
         self.ff = FeedForward(n_dim, dropout)
         self.pre_ln = nn.LayerNorm(n_dim)
         self.aft_ln = nn.LayerNorm(n_dim)
@@ -194,7 +267,7 @@ class FeedForward(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, n_dim, n_head, dropout):
+    def __init__(self, n_dim, n_head, dropout, local_size, block_size):
         super().__init__()
         assert n_dim % n_head == 0
         self.n_dim = n_dim
@@ -203,6 +276,21 @@ class MultiHeadAttention(nn.Module):
         self.attn_dropout = nn.Dropout(dropout)
         self.value_dropout = nn.Dropout(dropout)
         self.proj = nn.Linear(n_dim, n_dim)
+        self.register_buffer(
+            "local_mask",
+            ~(
+                torch.tril(
+                    torch.ones(block_size, block_size, dtype=torch.bool),
+                    diagonal=local_size,
+                )
+                * torch.triu(
+                    torch.ones(block_size, block_size, dtype=torch.bool),
+                    diagonal=-local_size,
+                )
+            ),
+        )
+        self.local_mask[0, :] = 0
+        self.local_mask[:, 0] = 0
 
     def forward(self, x, pad_mask):
         if pad_mask == None:
@@ -213,13 +301,42 @@ class MultiHeadAttention(nn.Module):
         q = q.view(B, T, self.n_head, -1).transpose(1, 2)
         k = k.view(B, T, self.n_head, -1).transpose(1, 2)
         v = v.view(B, T, self.n_head, -1).transpose(1, 2)
+
         attn = (q @ k.transpose(-1, -2)) * (1.0 / math.sqrt(k.size(-1)))
         attn = attn.masked_fill(
             pad_mask.unsqueeze(1).unsqueeze(1).to(torch.bool), -torch.inf
         )
+
+        attn = attn.masked_fill(self.local_mask[:T, :T], -torch.inf)
+        attn = attn.masked_fill(
+            (attn == -torch.inf) & (~self.local_mask[:T, :T]), -100.0
+        )
+
         attn = F.softmax(attn, dim=-1)
+        attn = attn * (~pad_mask.unsqueeze(1).unsqueeze(-1))
         attn = self.attn_dropout(attn)
         v = attn @ v
         v = v.transpose(1, 2).contiguous().view(B, T, -1)
         v = self.value_dropout(self.proj(v))
         return v
+
+
+class ConvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding):
+        super().__init__()
+        self.conv = nn.Conv1d(
+            in_channels,
+            out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+        )
+        self.bn = nn.BatchNorm1d(out_channels)
+        self.act = nn.ReLU()
+        self.dropout = nn.Dropout()
+
+    def forward(self, x):
+        output = self.dropout(self.act(self.bn(self.conv(x))))
+        if output.shape == x.shape:
+            return output + x
+        return output
