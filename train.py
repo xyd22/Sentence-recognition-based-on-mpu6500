@@ -11,7 +11,6 @@ from dataset import NeckMpuDataset
 from model import Mpu2TextClassifier
 from torch.nn.utils.rnn import pad_sequence
 
-
 def collate_fn(batch):
     label = pad_sequence([i["label"] for i in batch], batch_first=True, padding_value=0)
     data = pad_sequence(
